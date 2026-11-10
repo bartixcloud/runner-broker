@@ -231,7 +231,18 @@ Environment (besides `BCX_WEBHOOK_SECRET`, `BCX_DISPATCHER_HOST`, `BCX_DISPATCHE
 | `AKD_SPIEGEL_APP_ENV` | `/etc/akd-spiegel/app.env` | file with `BCX_APP_ID=<numeric app id>` (the process's own `BCX_APP_ID` is ignored) |
 | `AKD_SPIEGEL_APP_KEY` | `/etc/akd-spiegel/app.pem` | the App's RSA private key, root 0600 |
 
-Both are read only in org mode. The scripts `sichern.sh` and `restic-sichern.sh` run
+Optionally the findings are also sent to a Telegram chat, both variables or neither:
+
+| Variable | Default | Content |
+|---|---|---|
+| `BCX_TELEGRAM_TOKEN_FILE` | unset | absolute path of a file holding the bot token (0600; the token itself never goes into the environment) |
+| `BCX_TELEGRAM_CHAT_ID` | unset | target chat: a numeric id (groups are negative) or `@channelname` |
+
+One message per event, sent right after the findings are appended to the befund file and
+before restic starts, so a slow snapshot never delays the alert. A failed message is
+logged and does not stop the plan; the token never appears in a log line.
+
+All of these are read only in org mode. The scripts `sichern.sh` and `restic-sichern.sh` run
 with `SICHERUNG_WURZEL` set from the config; their own environment (`RESTIC_*`,
 `SICHERUNG_MOUNT`, `SICHERUNG_TOKEN_DATEI`, ...) is inherited from the unit's
 `EnvironmentFile=`. The unit's user needs write access to `befund_datei`'s directory and
