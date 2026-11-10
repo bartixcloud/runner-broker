@@ -1,0 +1,27 @@
+# runner-broker/tiers.yml — installed to /etc/bcx-broker/tiers.yml by install.sh.
+# Per-tier config shared by every tenant broker; read at broker start.
+# CI VMs launch in the tenant's Incus project (BROKER_INCUS_PROJECT), whose
+# limits.memory (tenants.yml capacity.mem, set by P3's Terraform) caps a
+# tenant's runners in sum; max_runners and the admission floor still apply.
+tiers:
+  build:
+    image: bcx-runner-base   # P3 metal/build-runner-base.sh
+    network: nat-ci
+    runner_group: build-ephemeral
+    cpu: "2"
+    mem: "4GiB"
+    max_runners: 4
+    allowlist: ["*"]      # any repo of the tenant — untrusted PR code, JIT token only
+    secrets: []           # nothing beyond the JIT token this tier ever gets
+  dependabot:
+    # Dependabot on self-hosted runners: the dynamic "Dependabot Updates" workflow asks
+    # for label `dependabot`; the broker's JIT runner carries it as the tier name. Needs
+    # real Docker (updater containers), which bcx-runner-base ships.
+    image: bcx-runner-base
+    network: nat-ci
+    runner_group: build-ephemeral
+    cpu: "2"
+    mem: "4GiB"
+    max_runners: 2
+    allowlist: ["*"]
+    secrets: []

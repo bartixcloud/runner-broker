@@ -1,0 +1,10 @@
+[Unit]
+Description=Run bcx-broker-reap for tenant %i every 5 minutes
+
+[Timer]
+OnBootSec=2min
+OnUnitActiveSec=5min
+Unit=bcx-broker-reap@%i.service
+
+[Install]
+WantedBy=timers.target

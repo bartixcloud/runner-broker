@@ -1,0 +1,8 @@
+# role  installed-name  go-package
+# Single source of binary names. Units, install.sh, build.sh, DEPLOY.md and P3 use the
+# installed names; only the go-package column couples to the Go source layout.
+dispatcher  bcx-dispatcher      ./cmd/bcx-dispatcher
+broker      bcx-broker          ./cmd/bcx-broker
+reaper      bcx-reap            ./cmd/bcx-reap
+generator   bcx-gen-tenant-env  ./cmd/bcx-gen-tenant-env
+appauth     bcx-appauth         ./cmd/bcx-appauth

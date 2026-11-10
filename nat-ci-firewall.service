@@ -1,0 +1,18 @@
+[Unit]
+Description=Install CI-ISOLATION nftables rules (nat-ci egress lockdown)
+Documentation=file:/opt/bcx-broker/nat-ci-firewall.sh
+After=docker.service
+Requires=docker.service
+# dockerd rebuilds DOCKER-USER from scratch if it's ever gone (e.g. a docker
+# restart that flushed iptables); PartOf ties this unit's restarts to
+# docker.service's so CI-ISOLATION gets re-wired whenever that could happen,
+# not just at boot.
+PartOf=docker.service
+
+[Service]
+Type=oneshot
+ExecStart=/opt/bcx-broker/nat-ci-firewall.sh
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

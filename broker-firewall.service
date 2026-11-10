@@ -1,0 +1,16 @@
+[Unit]
+Description=Admit the host Traefik edge network to bcx-dispatcher (ufw)
+Documentation=file:/opt/bcx-broker/broker-firewall.sh
+After=docker.service
+Requires=docker.service
+# The rule's source is the live `edge` docker network subnet; a dockerd
+# restart may re-create that network, so re-run together with docker.
+PartOf=docker.service
+
+[Service]
+Type=oneshot
+ExecStart=/opt/bcx-broker/broker-firewall.sh
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

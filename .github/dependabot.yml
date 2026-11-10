@@ -1,0 +1,18 @@
+# Dependabot version updates. Alerts and security updates are already enabled
+# org-wide (org default for new repos + per repo for the existing ones); this
+# file adds the routine weekly version bumps.
+#
+# The broker is Go: `gomod` covers go.mod/go.sum. The repo has no workflows, so
+# there is no github-actions entry to make.
+version: 2
+updates:
+  - package-ecosystem: gomod
+    directory: /
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: chore
+      include: scope
+    groups:
+      go-modules:
+        patterns: ["*"]

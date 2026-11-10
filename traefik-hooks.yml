@@ -1,0 +1,22 @@
+# traefik-hooks.yml - host-Traefik route for the GitHub App webhook (contracts
+# C4, C5). Replaces traefik-runner-webhook.yml (the per-tenant 9010/9011 routes).
+# Lives until a later sub-spec's DNAT flip.
+# Deploy: sudo install -m 0644 traefik-hooks.yml /opt/docker-volumes/traefik/config/dynamic/hooks.yml
+#
+# 172.17.0.1 is docker0's gateway, i.e. metal as seen from the Traefik
+# container; 127.0.0.1 would be Traefik's own loopback (verified 2026-09:
+# every delivery 502'd). Only POST /github is routed - /healthz stays host-local.
+http:
+  routers:
+    bcx-hooks:
+      rule: "Host(`hooks.example.org`) && Path(`/github`) && Method(`POST`)"
+      entryPoints:
+        - websecure
+      service: bcx-hooks
+      tls:
+        certResolver: letsencrypt
+  services:
+    bcx-hooks:
+      loadBalancer:
+        servers:
+          - url: "http://172.17.0.1:9100"

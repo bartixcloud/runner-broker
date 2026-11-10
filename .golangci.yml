@@ -1,0 +1,12 @@
+version: "2"
+
+linters:
+  default: standard
+  enable:
+    # AGENTS.md: no unchecked type assertions without the `, ok` form.
+    - forcetypeassert
+  exclusions:
+    rules:
+      - path: _test\.go
+        linters:
+          - errcheck

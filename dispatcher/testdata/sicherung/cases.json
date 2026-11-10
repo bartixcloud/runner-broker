@@ -1,0 +1,413 @@
+[
+ {
+  "name": "delete_branch",
+  "fixture": "delete_branch.json",
+  "event": "delete",
+  "diffstat": null
+ },
+ {
+  "name": "delete_ohne_ref",
+  "fixture": "delete_ohne_ref.json",
+  "event": "delete",
+  "diffstat": null
+ },
+ {
+  "name": "delete_ref_type_falsch",
+  "fixture": "delete_ref_type_falsch.json",
+  "event": "delete",
+  "diffstat": null
+ },
+ {
+  "name": "delete_tag",
+  "fixture": "delete_tag.json",
+  "event": "delete",
+  "diffstat": null
+ },
+ {
+  "name": "json_array@push",
+  "fixture": "json_array.json",
+  "event": "push",
+  "diffstat": null
+ },
+ {
+  "name": "json_array@delete",
+  "fixture": "json_array.json",
+  "event": "delete",
+  "diffstat": null
+ },
+ {
+  "name": "json_array@repository",
+  "fixture": "json_array.json",
+  "event": "repository",
+  "diffstat": null
+ },
+ {
+  "name": "json_leer@push",
+  "fixture": "json_leer.json",
+  "event": "push",
+  "diffstat": null
+ },
+ {
+  "name": "json_leer@delete",
+  "fixture": "json_leer.json",
+  "event": "delete",
+  "diffstat": null
+ },
+ {
+  "name": "json_leer@repository",
+  "fixture": "json_leer.json",
+  "event": "repository",
+  "diffstat": null
+ },
+ {
+  "name": "json_null@push",
+  "fixture": "json_null.json",
+  "event": "push",
+  "diffstat": null
+ },
+ {
+  "name": "json_null@delete",
+  "fixture": "json_null.json",
+  "event": "delete",
+  "diffstat": null
+ },
+ {
+  "name": "json_null@repository",
+  "fixture": "json_null.json",
+  "event": "repository",
+  "diffstat": null
+ },
+ {
+  "name": "kaputt@push",
+  "fixture": "kaputt.json",
+  "event": "push",
+  "diffstat": null
+ },
+ {
+  "name": "kaputt@delete",
+  "fixture": "kaputt.json",
+  "event": "delete",
+  "diffstat": null
+ },
+ {
+  "name": "kaputt@repository",
+  "fixture": "kaputt.json",
+  "event": "repository",
+  "diffstat": null
+ },
+ {
+  "name": "ping@ping",
+  "fixture": "ping.json",
+  "event": "ping",
+  "diffstat": null
+ },
+ {
+  "name": "ping@star",
+  "fixture": "ping.json",
+  "event": "star",
+  "diffstat": null
+ },
+ {
+  "name": "push_abgeschnitten",
+  "fixture": "push_abgeschnitten.json",
+  "event": "push",
+  "diffstat": null
+ },
+ {
+  "name": "push_branch_geloescht",
+  "fixture": "push_branch_geloescht.json",
+  "event": "push",
+  "diffstat": null
+ },
+ {
+  "name": "push_commits_falsch",
+  "fixture": "push_commits_falsch.json",
+  "event": "push",
+  "diffstat": null
+ },
+ {
+  "name": "push_commits_kein_array",
+  "fixture": "push_commits_kein_array.json",
+  "event": "push",
+  "diffstat": null
+ },
+ {
+  "name": "push_commits_null",
+  "fixture": "push_commits_null.json",
+  "event": "push",
+  "diffstat": null
+ },
+ {
+  "name": "push_einundfuenfzig_geloescht",
+  "fixture": "push_einundfuenfzig_geloescht.json",
+  "event": "push",
+  "diffstat": null
+ },
+ {
+  "name": "push_force",
+  "fixture": "push_force.json",
+  "event": "push",
+  "diffstat": null
+ },
+ {
+  "name": "push_force_umlaut",
+  "fixture": "push_force_umlaut.json",
+  "event": "push",
+  "diffstat": null
+ },
+ {
+  "name": "push_force_und_loeschung",
+  "fixture": "push_force_und_loeschung.json",
+  "event": "push",
+  "diffstat": null
+ },
+ {
+  "name": "push_forced_string",
+  "fixture": "push_forced_string.json",
+  "event": "push",
+  "diffstat": null
+ },
+ {
+  "name": "push_fuenfzig_geloescht",
+  "fixture": "push_fuenfzig_geloescht.json",
+  "event": "push",
+  "diffstat": null
+ },
+ {
+  "name": "push_mehrere_fehler",
+  "fixture": "push_mehrere_fehler.json",
+  "event": "push",
+  "diffstat": null
+ },
+ {
+  "name": "push_normal",
+  "fixture": "push_normal.json",
+  "event": "push",
+  "diffstat": null
+ },
+ {
+  "name": "push_ohne_commits",
+  "fixture": "push_ohne_commits.json",
+  "event": "push",
+  "diffstat": null
+ },
+ {
+  "name": "push_ohne_forced",
+  "fixture": "push_ohne_forced.json",
+  "event": "push",
+  "diffstat": null
+ },
+ {
+  "name": "push_repo_name_zahl",
+  "fixture": "push_repo_name_zahl.json",
+  "event": "push",
+  "diffstat": null
+ },
+ {
+  "name": "push_repo_null",
+  "fixture": "push_repo_null.json",
+  "event": "push",
+  "diffstat": null
+ },
+ {
+  "name": "push_repo_ohne_name",
+  "fixture": "push_repo_ohne_name.json",
+  "event": "push",
+  "diffstat": null
+ },
+ {
+  "name": "push_size_groesser",
+  "fixture": "push_size_groesser.json",
+  "event": "push",
+  "diffstat": null
+ },
+ {
+  "name": "push_size_kaputt",
+  "fixture": "push_size_kaputt.json",
+  "event": "push",
+  "diffstat": null
+ },
+ {
+  "name": "push_size_string",
+  "fixture": "push_size_string.json",
+  "event": "push",
+  "diffstat": null
+ },
+ {
+  "name": "push_viele_geloescht",
+  "fixture": "push_viele_geloescht.json",
+  "event": "push",
+  "diffstat": null
+ },
+ {
+  "name": "push_zwanzig_commits",
+  "fixture": "push_zwanzig_commits.json",
+  "event": "push",
+  "diffstat": null
+ },
+ {
+  "name": "repository_action_zahl",
+  "fixture": "repository_action_zahl.json",
+  "event": "repository",
+  "diffstat": null
+ },
+ {
+  "name": "repository_apostroph",
+  "fixture": "repository_apostroph.json",
+  "event": "repository",
+  "diffstat": null
+ },
+ {
+  "name": "repository_archived",
+  "fixture": "repository_archived.json",
+  "event": "repository",
+  "diffstat": null
+ },
+ {
+  "name": "repository_created",
+  "fixture": "repository_created.json",
+  "event": "repository",
+  "diffstat": null
+ },
+ {
+  "name": "repository_deleted",
+  "fixture": "repository_deleted.json",
+  "event": "repository",
+  "diffstat": null
+ },
+ {
+  "name": "repository_edited",
+  "fixture": "repository_edited.json",
+  "event": "repository",
+  "diffstat": null
+ },
+ {
+  "name": "repository_frobnicated",
+  "fixture": "repository_frobnicated.json",
+  "event": "repository",
+  "diffstat": null
+ },
+ {
+  "name": "repository_ohne_action",
+  "fixture": "repository_ohne_action.json",
+  "event": "repository",
+  "diffstat": null
+ },
+ {
+  "name": "repository_privatized",
+  "fixture": "repository_privatized.json",
+  "event": "repository",
+  "diffstat": null
+ },
+ {
+  "name": "repository_publicized",
+  "fixture": "repository_publicized.json",
+  "event": "repository",
+  "diffstat": null
+ },
+ {
+  "name": "repository_renamed",
+  "fixture": "repository_renamed.json",
+  "event": "repository",
+  "diffstat": null
+ },
+ {
+  "name": "repository_transferred",
+  "fixture": "repository_transferred.json",
+  "event": "repository",
+  "diffstat": null
+ },
+ {
+  "name": "repository_unarchived",
+  "fixture": "repository_unarchived.json",
+  "event": "repository",
+  "diffstat": null
+ },
+ {
+  "name": "repository_zeilenumbruch",
+  "fixture": "repository_zeilenumbruch.json",
+  "event": "repository",
+  "diffstat": null
+ },
+ {
+  "name": "diff_ueber_dateischwelle",
+  "fixture": "push_normal.json",
+  "event": "push",
+  "diffstat": {
+   "dateien_geloescht": 60,
+   "zeilen_geloescht": 10
+  }
+ },
+ {
+  "name": "diff_ueber_zeilenschwelle",
+  "fixture": "push_normal.json",
+  "event": "push",
+  "diffstat": {
+   "dateien_geloescht": 1,
+   "zeilen_geloescht": 6000
+  }
+ },
+ {
+  "name": "diff_unter_schwelle",
+  "fixture": "push_normal.json",
+  "event": "push",
+  "diffstat": {
+   "dateien_geloescht": 3,
+   "zeilen_geloescht": 40
+  }
+ },
+ {
+  "name": "diff_genau_auf_schwelle",
+  "fixture": "push_normal.json",
+  "event": "push",
+  "diffstat": {
+   "dateien_geloescht": 50,
+   "zeilen_geloescht": 5000
+  }
+ },
+ {
+  "name": "diff_abgeschnitten_ist_pruefbar",
+  "fixture": "push_abgeschnitten.json",
+  "event": "push",
+  "diffstat": {
+   "dateien_geloescht": 1,
+   "zeilen_geloescht": 1
+  }
+ },
+ {
+  "name": "diff_ohne_commits_feld",
+  "fixture": "push_ohne_commits.json",
+  "event": "push",
+  "diffstat": {
+   "dateien_geloescht": 60,
+   "zeilen_geloescht": 0
+  }
+ },
+ {
+  "name": "diff_zwanzig_commits",
+  "fixture": "push_zwanzig_commits.json",
+  "event": "push",
+  "diffstat": {
+   "dateien_geloescht": 0,
+   "zeilen_geloescht": 0
+  }
+ },
+ {
+  "name": "diff_force_und_masse",
+  "fixture": "push_force.json",
+  "event": "push",
+  "diffstat": {
+   "dateien_geloescht": 51,
+   "zeilen_geloescht": 0
+  }
+ },
+ {
+  "name": "diff_auf_ungueltigem_payload",
+  "fixture": "push_ohne_forced.json",
+  "event": "push",
+  "diffstat": {
+   "dateien_geloescht": 60,
+   "zeilen_geloescht": 0
+  }
+ }
+]

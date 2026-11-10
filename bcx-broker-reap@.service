@@ -1,0 +1,11 @@
+[Unit]
+Description=Sweep orphaned CI runner VMs for tenant %i
+After=incus.service
+
+[Service]
+Type=oneshot
+EnvironmentFile=/etc/bartixcloud/app.env
+EnvironmentFile=/etc/bcx-broker/%i.env
+# Scoped to BROKER_INCUS_PROJECT: another tenant's instances are invisible,
+# so they cannot be reaped.
+ExecStart=/opt/bcx-broker/bcx-reap

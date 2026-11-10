@@ -1,0 +1,20 @@
+[Unit]
+Description=bartixcloud GitHub App webhook dispatcher (one HMAC, routes by installation)
+# 172.17.0.1 is docker0's address; it exists only once dockerd is up.
+After=network-online.target docker.service incus.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+EnvironmentFile=/etc/bartixcloud/dispatcher.env
+# A static Go binary, no interpreter; it shells out only to `incus` for the poke.
+ExecStart=/opt/bcx-broker/bcx-dispatcher
+Restart=on-failure
+RestartSec=5
+# Root: `incus exec` for the poke and connect() into the 0700 socket dir.
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectHome=yes
+
+[Install]
+WantedBy=multi-user.target
