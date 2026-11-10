@@ -43,6 +43,8 @@ type OrgRunner struct {
 	Cmd       OutputRunner
 	Workflows WorkflowDispatcher
 	Log       *slog.Logger
+	// Notify, when set, is told about every finding right after it is recorded.
+	Notify Notifier
 
 	fileMu sync.Mutex
 }
@@ -158,20 +160,23 @@ func (o *OrgRunner) erkennung(ctx context.Context, plan OrgPlan, st *runState) {
 	}
 	befunde := Bewerte(plan.Event, plan.Body, o.Cfg.Schwellen, diff)
 
+	// The findings are recorded and announced BEFORE restic runs: a snapshot to a slow or
+	// hanging target can take hours, and a critical finding must not wait for it.
+	o.write(append(befunde, st.fehlschlaege...))
+	st.fehlschlaege = nil
+
 	if plan.Repo != "" {
 		for _, b := range befunde {
 			if b.Schwere != SchwereKritisch {
 				continue
 			}
 			if out, err := o.script(ctx, scriptRestic, plan.Repo, o.Cfg.ResticTimeout); err != nil {
-				st.fehlschlaege = append(st.fehlschlaege, unpruefbar(b.Repo, b.Ref,
-					fmt.Sprintf("restic-Snapshot fehlgeschlagen (%s %s)", scriptRestic, exitText(out))))
+				o.write([]Befund{unpruefbar(b.Repo, b.Ref,
+					fmt.Sprintf("restic-Snapshot fehlgeschlagen (%s %s)", scriptRestic, exitText(out)))})
 			}
 			break // one snapshot per event: it covers the whole clone
 		}
 	}
-	o.write(append(befunde, st.fehlschlaege...))
-	st.fehlschlaege = nil
 }
 
 // measureDiffstat counts deleted files and lines between before and after in the
@@ -262,11 +267,16 @@ func (o *OrgRunner) write(befunde []Befund) {
 		o.Log.Warn("befund", "art", string(b.Art), "repo", clip(b.Repo, logFieldLimit),
 			"schwere", string(b.Schwere), "grund", clip(b.Grund, logOutputLimit))
 	}
-	data, err := EncodeBefunde(befunde)
-	if err != nil {
+	if data, err := EncodeBefunde(befunde); err != nil {
 		o.Log.Error("encoding befunde failed", "err", err)
-		return
+	} else {
+		o.appendFile(data)
 	}
+	o.notify(befunde)
+}
+
+// appendFile adds the encoded findings to the befund file under the file lock.
+func (o *OrgRunner) appendFile(data []byte) {
 	o.fileMu.Lock()
 	defer o.fileMu.Unlock()
 	if err := os.MkdirAll(filepath.Dir(o.Cfg.BefundDatei), 0o750); err != nil {
@@ -283,6 +293,19 @@ func (o *OrgRunner) write(befunde []Befund) {
 	}
 	if err := f.Close(); err != nil {
 		o.Log.Error("closing the befund file failed", "err", err)
+	}
+}
+
+// notify tells the optional Notifier about the findings. It runs after the file append
+// and under its own timeout; a failure is logged and never stops the plan.
+func (o *OrgRunner) notify(befunde []Befund) {
+	if o.Notify == nil {
+		return
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), notifyTimeout)
+	defer cancel()
+	if err := o.Notify.Notify(ctx, befunde); err != nil {
+		o.Log.Error("notifying about befunde failed", "err", clip(err.Error(), logOutputLimit))
 	}
 }
 

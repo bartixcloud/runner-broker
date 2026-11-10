@@ -182,6 +182,16 @@ func TestRunOrgModeFailsTheStartOnBadCredentialsOrSection(t *testing.T) {
 		"bad org section": {func(_ *orgRig, e map[string]string) {
 			e["BCX_DISPATCHER_MAP"] = writeTable(t, `{"installations":{},"pokes":{},"org":{"owner":"ekd-akd"}}`)
 		}, "org section"},
+		"telegram chat without token file": {func(_ *orgRig, e map[string]string) {
+			e["BCX_TELEGRAM_CHAT_ID"] = "12345"
+		}, "BCX_TELEGRAM_TOKEN_FILE"},
+		"telegram token file without chat": {func(_ *orgRig, e map[string]string) {
+			e["BCX_TELEGRAM_TOKEN_FILE"] = "/nonexistent/telegram-token"
+		}, "BCX_TELEGRAM_CHAT_ID"},
+		"telegram token file missing": {func(_ *orgRig, e map[string]string) {
+			e["BCX_TELEGRAM_TOKEN_FILE"] = "/nonexistent/telegram-token"
+			e["BCX_TELEGRAM_CHAT_ID"] = "12345"
+		}, "telegram token file"},
 	}
 	for name, tc := range cases {
 		t.Run(name, func(t *testing.T) {

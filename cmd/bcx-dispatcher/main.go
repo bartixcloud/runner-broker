@@ -29,7 +29,8 @@ const (
 	usage = "usage: bcx-dispatcher (no arguments; configured by BCX_WEBHOOK_SECRET and the optional\n" +
 		"BCX_DISPATCHER_HOST, BCX_DISPATCHER_PORT, BCX_DISPATCHER_MAP, BCX_BROKER_SOCKET_DIR,\n" +
 		"BCX_DISPATCHER_POKE_TIMEOUT; org mode, switched on by an \"org\" section in the map, also reads\n" +
-		"AKD_SPIEGEL_APP_ENV, AKD_SPIEGEL_APP_KEY)"
+		"AKD_SPIEGEL_APP_ENV, AKD_SPIEGEL_APP_KEY and, to message findings, BCX_TELEGRAM_TOKEN_FILE with\n" +
+		"BCX_TELEGRAM_CHAT_ID)"
 )
 
 // shutdownLimits bounds the two phases of a graceful stop: finishing in-flight HTTP
@@ -99,7 +100,15 @@ func newServer(cfg dispatcher.Config, table dispatcher.Table, getenv func(string
 	if err != nil {
 		return nil, err
 	}
-	log.Info("org mode", "owner", table.Org.Owner, "spiegel", table.Org.SpiegelRepo)
+	notifier, err := dispatcher.LoadTelegram(getenv)
+	if err != nil {
+		return nil, err
+	}
+	if notifier != nil {
+		srv.Org.Notify = notifier
+	}
+	log.Info("org mode", "owner", table.Org.Owner, "spiegel", table.Org.SpiegelRepo,
+		"telegram", notifier != nil)
 	return srv, nil
 }
 
