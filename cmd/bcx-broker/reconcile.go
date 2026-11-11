@@ -170,16 +170,17 @@ func runJobs(token, repo string, runID int) ([]queuedJob, error) {
 	return out, nil
 }
 
-// claimJob marks jobID as being launched by this process, so the webhook path
-// and the reconciler — which both see the same queued job — cannot launch two
-// VMs for it. False means this process is already launching it.
-func claimJob(jobID int) bool {
+// claimJob marks jobID as being launched by this process for tier t, so the
+// webhook path and the reconciler — which both see the same queued job — cannot
+// launch two VMs for it, and so the reconciler can count the runner that launch
+// is about to produce. False means this process is already launching it.
+func claimJob(jobID int, t string) bool {
 	launchLock.Lock()
 	defer launchLock.Unlock()
 	if _, taken := claimed[jobID]; taken {
 		return false
 	}
-	claimed[jobID] = struct{}{}
+	claimed[jobID] = t
 	return true
 }
 
@@ -189,74 +190,165 @@ func unclaimJob(jobID int) {
 	delete(claimed, jobID)
 }
 
-// coveredJobs returns the job ids that already have a runner: a ci-* instance
-// on any backend a configured tier uses (named ci-<tier>-<jobID>-<hex>) and the
-// jobs this process is launching right now.
-func coveredJobs(tiers map[string]tier) (map[int]struct{}, error) {
-	names, err := runningRunnersAll(tiers)
-	if err != nil {
-		return nil, err
-	}
-	out := make(map[int]struct{}, len(names)+len(claimed))
-	for _, n := range names {
-		if id, ok := jobIDFromInstanceName(n); ok {
-			out[id] = struct{}{}
-		}
-	}
-	launchLock.Lock()
-	defer launchLock.Unlock()
-	for id := range claimed {
-		out[id] = struct{}{}
-	}
-	return out, nil
+// maxRunnerPages bounds the runner list walk, for the same reason as
+// maxRepoPages: a partial list would overstate the idle runners.
+const maxRunnerPages = 10
+
+type runnersReply struct {
+	Runners []struct {
+		Name string `json:"name"`
+		Busy bool   `json:"busy"`
+	} `json:"runners"`
 }
 
-// jobIDFromInstanceName parses the name spawn gives an instance. The job id is
-// the second-to-last dash-separated field, so a tier name containing a dash
-// cannot shift it.
-func jobIDFromInstanceName(name string) (int, bool) {
+// busyRunners returns the names of this tenant's registered runners that are
+// running a job right now. It is the one thing a VM list cannot say: a VM that
+// exists is idle, booting or busy, and only an idle or booting one can take a
+// queued job. The list is read where the mint registers runners (the org, or
+// each registered repo of a user tenant). A registration whose VM is gone shows
+// up here too, so callers must never count this list as capacity.
+func busyRunners(token string) (map[string]struct{}, error) {
+	var bases []string
+	switch parseTargetKind(targetKind) {
+	case kindOrg:
+		bases = []string{"/orgs/" + target}
+	case kindUser:
+		for _, r := range repos {
+			bases = append(bases, "/repos/"+target+"/"+r)
+		}
+	default:
+		return nil, fmt.Errorf("unknown BROKER_TARGET_KIND %q", targetKind)
+	}
+	busy := make(map[string]struct{})
+	for _, base := range bases {
+		done := false
+		for page := 1; page <= maxRunnerPages && !done; page++ {
+			raw, err := gh("GET", fmt.Sprintf("%s/actions/runners?per_page=%d&page=%d", base, listPage, page), token, nil)
+			if err != nil {
+				return nil, fmt.Errorf("cannot list the runners of %s: %w", base, err)
+			}
+			var reply runnersReply
+			if err := json.Unmarshal(raw, &reply); err != nil {
+				return nil, fmt.Errorf("runner list of %s is not the expected JSON: %w", base, err)
+			}
+			for _, r := range reply.Runners {
+				if r.Busy {
+					busy[r.Name] = struct{}{}
+				}
+			}
+			done = len(reply.Runners) < listPage
+		}
+		if !done {
+			return nil, fmt.Errorf("%s has more than %d runners: refusing a partial list", base, listPage*maxRunnerPages)
+		}
+	}
+	return busy, nil
+}
+
+// parseInstanceName splits the name spawn gives an instance,
+// ci-<tier>-<jobID>-<hex6>. The job id and the hex are the last two
+// dash-separated fields, so a tier name containing a dash cannot shift them.
+func parseInstanceName(name string) (tier string, jobID int, ok bool) {
 	fields := strings.Split(name, "-")
 	if len(fields) < 4 || fields[0] != "ci" {
-		return 0, false
+		return "", 0, false
 	}
 	id, err := strconv.Atoi(fields[len(fields)-2])
 	if err != nil || id <= 0 {
-		return 0, false
+		return "", 0, false
 	}
-	return id, true
+	return strings.Join(fields[1:len(fields)-2], "-"), id, true
 }
 
-// reconcileOnce spawns a runner for every queued job of this tenant that
-// resolves to a tier and has no runner yet. Denied and ignored jobs are left
-// alone: the webhook path already cancelled the denied ones, and cancelling
-// again every pass would only fill the journal.
+// jobIDFromInstanceName is the job id of an instance name.
+func jobIDFromInstanceName(name string) (int, bool) {
+	_, id, ok := parseInstanceName(name)
+	return id, ok
+}
+
+// idleRunners counts, per tier, the runners that can still take a queued job:
+// VMs that are not busy (idle or still booting), plus launches in flight that
+// have no VM yet.
+//
+// GitHub gives an idle JIT runner ANY queued job that matches its labels, not
+// the job it was spawned for, so whether a VM is named for a job says nothing
+// about whether that job will get a runner. A VM with no registration yet counts
+// as booting; a registration with no VM is not counted at all.
+func idleRunners(vmNames []string, busy map[string]struct{}) map[string]int {
+	idle := make(map[string]int)
+	idleVMJobs := make(map[int]struct{}, len(vmNames))
+	for _, n := range vmNames {
+		t, id, ok := parseInstanceName(n)
+		if !ok {
+			continue
+		}
+		if _, isBusy := busy[n]; isBusy {
+			continue
+		}
+		idle[t]++
+		idleVMJobs[id] = struct{}{}
+	}
+	launchLock.Lock()
+	defer launchLock.Unlock()
+	for id, t := range claimed {
+		// Launch holds the claim while its VM is already listed: one runner.
+		if _, listed := idleVMJobs[id]; listed {
+			continue
+		}
+		idle[t]++
+	}
+	return idle
+}
+
+// reconcileOnce spawns runners for the queued jobs of this tenant that no
+// runner will pick up. It decides per tier, by count: queued jobs that resolve
+// to a tier, minus that tier's idle and booting runners, is how many to spawn.
+// Denied and ignored jobs are left alone: the webhook path already cancelled the
+// denied ones, and cancelling again every pass would only fill the journal.
 func (s *server) reconcileOnce(ctx context.Context, token string) {
 	jobs, err := queuedJobs(token)
 	if err != nil {
 		logf("ERROR", "reconcile: %v", err)
 		return
 	}
-	if len(jobs) == 0 {
+	wanted := make(map[string][]queuedJob)
+	for _, j := range jobs {
+		if dec := decideJobAction(j.Labels, j.Repo, s.tiers, ""); dec.action == actionSpawn {
+			wanted[dec.tier] = append(wanted[dec.tier], j)
+		}
+	}
+	if len(wanted) == 0 {
 		return
 	}
-	covered, err := coveredJobs(s.tiers)
+	names, err := runningRunnersAll(s.tiers)
 	if err != nil {
 		logf("ERROR", "reconcile: %v", err)
 		return
 	}
-	for _, j := range jobs {
-		if ctx.Err() != nil {
-			return
+	// Spawning on a guess about which runners are busy is the bug this count
+	// exists to avoid; an unreadable list waits for the next pass.
+	busy, err := busyRunners(token)
+	if err != nil {
+		logf("ERROR", "reconcile: %v", err)
+		return
+	}
+	idle := idleRunners(names, busy)
+	for t, queued := range wanted {
+		short := len(queued) - idle[t]
+		for _, j := range queued {
+			if short <= 0 || ctx.Err() != nil {
+				break
+			}
+			launchLock.Lock()
+			_, inFlight := claimed[j.ID]
+			launchLock.Unlock()
+			if inFlight {
+				continue // counted in idle already
+			}
+			logf("INFO", "reconcile: tier %s has %d queued job(s) and %d idle runner(s) — spawning for job %d (%s)", t, len(queued), idle[t], j.ID, j.Repo)
+			short--
+			s.track(func() { s.safeSpawn(j.ID, t, j.Repo) })
 		}
-		if _, ok := covered[j.ID]; ok {
-			continue
-		}
-		dec := decideJobAction(j.Labels, j.Repo, s.tiers, "")
-		if dec.action != actionSpawn {
-			continue
-		}
-		logf("INFO", "reconcile: job %d (%s, tier=%s) is queued with no runner — spawning", j.ID, j.Repo, dec.tier)
-		s.track(func() { s.safeSpawn(j.ID, dec.tier, j.Repo) })
 	}
 }
 

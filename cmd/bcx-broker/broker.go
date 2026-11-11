@@ -55,8 +55,8 @@ var (
 var (
 	ghAPI          = "https://api.github.com"
 	launchLock     sync.Mutex
-	reserved       = map[string]int{}   // tier -> int, guarded by launchLock
-	claimed        = map[int]struct{}{} // job id -> being launched here, guarded by launchLock
+	reserved       = map[string]int{} // tier -> int, guarded by launchLock
+	claimed        = map[int]string{} // job id -> its tier, being launched here, guarded by launchLock
 	groupIDMu      sync.Mutex
 	groupIDCache   = map[[2]string]int{} // guarded by groupIDMu
 	reservedLabels = map[string]struct{}{
