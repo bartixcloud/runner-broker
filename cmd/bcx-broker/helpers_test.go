@@ -23,7 +23,7 @@ func swap[T any](t *testing.T, p *T, v T) {
 func freshState(t *testing.T) {
 	t.Helper()
 	swap(t, &reserved, map[string]int{})
-	swap(t, &claimed, map[int]struct{}{})
+	swap(t, &claimed, map[int]string{})
 	swap(t, &groupIDCache, map[[2]string]int{})
 }
 

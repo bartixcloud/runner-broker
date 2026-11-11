@@ -253,7 +253,7 @@ func (s *server) safeSpawn(jobID int, t, repoFullName string) {
 			logf("ERROR", "spawn failed for job %d: %q", jobID, fmt.Sprint(r))
 		}
 	}()
-	if !claimJob(jobID) {
+	if !claimJob(jobID, t) {
 		logf("INFO", "job %d is already being launched here — not launching a second VM", jobID)
 		return
 	}
